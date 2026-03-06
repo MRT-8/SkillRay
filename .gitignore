@@ -1,0 +1,9 @@
+﻿# Python caches
+__pycache__/
+*.py[cod]
+
+# Local scanner output
+skillray-report.json
+
+# Tool caches
+.pytest_cache/

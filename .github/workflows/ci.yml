@@ -1,0 +1,33 @@
+﻿name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-and-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Scanner smoke check
+        run: |
+          mkdir -p .ci_skills/demo/scripts
+          printf "import subprocess\nsubprocess.run(cmd, shell=True)\n" > .ci_skills/demo/scripts/run.py
+          python -m skillray_scan --path .ci_skills --format both --json-out skillray-report.json --ignore-file .skillrayignore
+
+      - name: Upload scanner report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skillray-report
+          path: skillray-report.json
