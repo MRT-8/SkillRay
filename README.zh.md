@@ -131,4 +131,4 @@ uv run python3 -m skillray tests/samples/benign/
 
 ## 许可证
 
-MIT
+Apache-2.0
