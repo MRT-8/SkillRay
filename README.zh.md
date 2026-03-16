@@ -37,6 +37,12 @@ SkillRay 是一个**轻量级、离线、多引擎静态分析器**，专为 AI 
 - **零 ML 依赖** — 仅需 `rich`（约 3MB）
 - **离线且快速** — 无 API 调用，毫秒级扫描
 
+## 系统架构
+
+<p align="center">
+  <img src="assets/architecture-zh.png" alt="SkillRay 系统架构" width="90%" />
+</p>
+
 ## 快速开始
 
 ```bash

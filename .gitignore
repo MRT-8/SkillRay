@@ -26,3 +26,4 @@ skillray-report.json
 # OS
 .DS_Store
 Thumbs.db
+*:Zone.Identifier
