@@ -37,6 +37,12 @@ SkillRay is a **lightweight, offline, multi-engine static analyzer** purpose-bui
 - **Zero ML Dependencies** — Only requires `rich` (~3MB)
 - **Offline & Fast** — No API calls, scans in milliseconds
 
+## Architecture
+
+<p align="center">
+  <img src="assets/architecture.png" alt="SkillRay Architecture" width="90%" />
+</p>
+
 ## Quick Start
 
 ```bash
