@@ -1,97 +1,150 @@
-﻿# SkillRay Scan
+<p align="center">
+  <h1 align="center">SkillRay</h1>
+  <p align="center">
+    <strong>AI Skill Security Scanner</strong>
+    <br />
+    Scan AI skills for security threats before they scan your secrets.
+  </p>
+  <p align="center">
+    <a href="README.zh.md">中文</a>
+  </p>
+</p>
 
-`skillray_scan` is a lightweight static security checker for newly added skills.
+<p align="center">
+  <img src="https://img.shields.io/pypi/v/skillray?color=blue" alt="PyPI" />
+  <img src="https://img.shields.io/pypi/pyversions/skillray" alt="Python" />
+  <img src="https://img.shields.io/github/license/hejuntao/skillRay" alt="License" />
+  <img src="https://img.shields.io/github/actions/workflow/status/hejuntao/skillRay/ci.yml" alt="CI" />
+</p>
 
-It scans:
-- `SKILL.md` files
-- script files in `scripts/` or with known script extensions (`.py`, `.sh`, `.ps1`, etc.)
+---
 
-It reports findings in terminal text and/or JSON.
+## Why SkillRay?
 
-## Requirements
+**36.82% of AI skills contain security defects** (Snyk ToxicSkills, 2024). As AI agents gain tool-use capabilities, a single malicious skill can steal credentials, exfiltrate data, or compromise entire systems.
 
-- Python 3.10+
+SkillRay is a **lightweight, offline, multi-engine static analyzer** purpose-built for AI skill security — no ML models, no API keys, no YARA C dependencies.
+
+## Features
+
+- **5 Detection Engines** — Regex, AST, Entropy, Dataflow, Prompt analysis
+- **37+ Security Rules** across 9 threat categories
+- **5-Level Severity** — Critical / High / Medium / Low / Info
+- **Beautiful Terminal Output** — Rich tables, colors, progress indicators
+- **Multiple Output Formats** — Text, JSON, SARIF, Markdown
+- **Claude Code Skill** — Native integration as a Claude Code skill
+- **Bilingual** — English and Chinese output (`--lang zh`)
+- **Zero ML Dependencies** — Only requires `rich` (~3MB)
+- **Offline & Fast** — No API calls, scans in milliseconds
 
 ## Quick Start
 
-Run from repository root:
-
 ```bash
-python -m skillray_scan
+# Install
+pip install skillray
+# or
+uvx skillray
+
+# Scan current directory
+skillray .
+
+# Scan with CI fail threshold
+skillray ./skills --fail-on high
+
+# JSON output for automation
+skillray . --format json --output report.json
+
+# Chinese output
+skillray . --lang zh
 ```
 
-Default behavior:
-- scan path: `skills`
-- output format: `both` (text + JSON)
-- JSON output: `./skillray-report.json`
-- ignore file: `./.skillrayignore`
+## Threat Categories
 
-## CLI
+| Category | Rules | Engine | Example Threats |
+|----------|-------|--------|----------------|
+| **SR-PROMPT** | 5 | Prompt | Hidden instructions, role override, invisible Unicode |
+| **SR-TOOL** | 3 | Prompt | Tool poisoning, MCP override, hidden behaviors |
+| **SR-CRED** | 5 | Entropy + Regex | Hardcoded keys (AWS/GitHub/OpenAI), env var theft |
+| **SR-EXFIL** | 4 | Dataflow + Regex | Sensitive read + network send, DNS tunneling |
+| **SR-SUPPLY** | 4 | Regex + AST | Typosquatting, runtime installs, unpinned deps |
+| **SR-PRIV** | 4 | Regex | sudo, container escape, security bypass |
+| **SR-OBFUSC** | 5 | Regex + Prompt | Base64/hex payloads, homoglyphs, string concat |
+| **SR-DESTRUCT** | 3 | Regex | rm -rf, disk format, git history destruction |
+| **SR-EXEC** | 4 | AST + Regex | eval/exec, shell=True, download-and-execute |
 
-```bash
-python -m skillray_scan \
-  --path skills \
-  --format both \
-  --json-out ./skillray-report.json \
-  --ignore-file ./.skillrayignore
+## Detection Engines
+
+| Engine | Target Files | Dependencies | Purpose |
+|--------|-------------|-------------|---------|
+| **RegexEngine** | All | stdlib `re` | Pattern matching (~60 patterns) |
+| **ASTEngine** | `.py` | stdlib `ast` | Python AST analysis, eliminates comment/string FPs |
+| **EntropyEngine** | All | stdlib `math` | Shannon entropy + ~15 known key formats |
+| **DataflowEngine** | `.py` / shell | stdlib `ast` | Lightweight taint tracking: source → sink |
+| **PromptEngine** | `.md` / SKILL.md | stdlib | Prompt injection heuristics |
+
+## CLI Reference
+
+```
+skillray [PATH]                      # Positional arg, default "."
+  --format text|json|sarif|md        # Output format
+  --output FILE                      # Write report to file
+  --fail-on critical|high|medium|low # Exit code threshold (for CI)
+  --quiet                            # Minimal output
+  --lang en|zh                       # Language
+  --ignore-file PATH                 # Ignore config file
+  --engines regex,ast,entropy,...    # Select engines
+  --rules SR-PROMPT-*,SR-CRED-*     # Filter rules
+  --no-color                         # Disable colors
+  --version
 ```
 
-Arguments:
-- `--path`: scan root directory
-- `--format`: `text | json | both`
-- `--json-out`: JSON report output path (used by `json`/`both`)
-- `--ignore-file`: ignore rules file path
+## Comparison
+
+| Feature | SkillRay | AgentVet | Cisco Scanner |
+|---------|----------|----------|---------------|
+| External deps | `rich` only | YARA + multiple | YARA + LLM |
+| Detection engines | 5 | 3 | 3 |
+| Prompt injection | Dedicated engine | No | LLM-based |
+| AST analysis | Yes | No | No |
+| Entropy analysis | Yes | No | No |
+| Claude Code Skill | Native | No | No |
+| Offline | Yes | Yes | No (needs LLM) |
+| Chinese support | Yes | No | No |
+
+## Claude Code Skill
+
+SkillRay works as a native Claude Code skill. After installation, just say:
+
+> "Scan this directory for security issues"
+
+The `SKILL.md` in the project root enables Claude Code to automatically invoke SkillRay and present findings conversationally.
 
 ## Ignore Rules (`.skillrayignore`)
 
-Each non-empty, non-comment line can be:
-- `RULE_ID` (ignore a rule globally)
-- `RULE_ID:path/glob` (ignore a rule for matching file path pattern)
-
-Example:
-
 ```text
-# Ignore all SR-SCRIPT-003 findings
-SR-SCRIPT-003
+# Ignore a rule globally
+SR-PRIV-001
 
-# Ignore SR-SKILL-004 only under demo skills
-SR-SKILL-004:demo/*/SKILL.md
+# Ignore a rule for specific files
+SR-CRED-001:tests/**/*.py
 ```
 
-## Severity Model
-
-Findings use three levels:
-- `High`
-- `Medium`
-- `Low`
-
-Current behavior is report-only (exit code remains `0` unless runtime error occurs).
-
-## Built-in Rule IDs
-
-`SKILL.md` rules:
-- `SR-SKILL-001`: destructive filesystem commands
-- `SR-SKILL-002`: download-and-execute patterns
-- `SR-SKILL-003`: privilege escalation / bypass guidance
-- `SR-SKILL-004`: sensitive data exfiltration command patterns
-
-Script rules:
-- `SR-SCRIPT-001`: shell command execution primitives
-- `SR-SCRIPT-002`: dynamic code execution primitives
-- `SR-SCRIPT-003`: dynamically built command execution
-- `SR-SCRIPT-004`: sensitive-read + outbound-network combination
-
-## Tests
-
-Run all tests:
+## Development
 
 ```bash
-python -m unittest discover -s tests -v
+# Clone and install
+git clone https://github.com/hejuntao/skillRay
+cd skillRay
+uv sync
+
+# Run tests
+uv run pytest tests/ -v
+
+# Run scanner on test samples
+uv run python3 -m skillray tests/samples/malicious/
+uv run python3 -m skillray tests/samples/benign/
 ```
 
-## CI
+## License
 
-GitHub Actions workflow is provided at:
-- `.github/workflows/ci.yml`
-
-It runs unit/integration tests and a scanner smoke check.
+MIT
