@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+"""Configuration and ignore file handling."""
+
+from __future__ import annotations
 
 import fnmatch
 from dataclasses import dataclass, field
@@ -49,12 +51,12 @@ def load_ignore_file(path: Path) -> IgnoreConfig:
 
 
 def match_ignore(finding: Finding, config: IgnoreConfig) -> str | None:
-    if finding.id in config.global_rule_ids:
+    if finding.rule_id in config.global_rule_ids:
         return "globally ignored rule"
 
     normalized_file = _normalize_path(finding.file)
     for entry in config.scoped:
-        if entry.rule_id != finding.id:
+        if entry.rule_id != finding.rule_id:
             continue
         if fnmatch.fnmatch(normalized_file, entry.pattern):
             return f"ignored by pattern: {entry.pattern}"

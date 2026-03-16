@@ -1,9 +1,28 @@
-﻿# Python caches
+# Python
 __pycache__/
 *.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
 
-# Local scanner output
-skillray-report.json
+# Virtual environments
+.venv/
+venv/
 
-# Tool caches
+# Testing
 .pytest_cache/
+htmlcov/
+.coverage
+
+# IDE
+.vscode/
+.idea/
+
+# Output
+skillray-report.json
+*.sarif
+
+# OS
+.DS_Store
+Thumbs.db
