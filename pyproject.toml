@@ -34,8 +34,8 @@ dependencies = [
 skillray = "skillray.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/hejuntao/skillRay"
-Repository = "https://github.com/hejuntao/skillRay"
+Homepage = "https://github.com/MRT-8/SkillRay"
+Repository = "https://github.com/MRT-8/SkillRay"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -13,8 +13,8 @@
 <p align="center">
   <img src="https://img.shields.io/pypi/v/skillray?color=blue" alt="PyPI" />
   <img src="https://img.shields.io/pypi/pyversions/skillray" alt="Python" />
-  <img src="https://img.shields.io/github/license/hejuntao/skillRay" alt="License" />
-  <img src="https://img.shields.io/github/actions/workflow/status/hejuntao/skillRay/ci.yml" alt="CI" />
+  <img src="https://img.shields.io/github/license/MRT-8/SkillRay" alt="License" />
+  <img src="https://img.shields.io/github/actions/workflow/status/MRT-8/SkillRay/ci.yml" alt="CI" />
 </p>
 
 ---
@@ -123,7 +123,7 @@ SR-CRED-001:tests/**/*.py
 
 ```bash
 # 克隆并安装
-git clone https://github.com/hejuntao/skillRay
+git clone https://github.com/MRT-8/SkillRay
 cd skillRay
 uv sync
 
