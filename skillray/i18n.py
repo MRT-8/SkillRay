@@ -34,6 +34,9 @@ _STRINGS: dict[str, dict[Lang, str]] = {
     "ignored": {"en": "Ignored", "zh": "已忽略"},
     "summary": {"en": "Summary", "zh": "摘要"},
     "details": {"en": "Details", "zh": "详情"},
+    "cat_persistence": {"en": "Persistence/Backdoor", "zh": "持久化/后门"},
+    "cat_stealth": {"en": "Stealth/Coercion", "zh": "隐匿/胁迫"},
+    "cat_mcp_threat": {"en": "MCP Configuration Threat", "zh": "MCP 配置威胁"},
 }
 
 

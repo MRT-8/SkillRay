@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import ast
 import re
 from pathlib import Path
 
@@ -29,6 +28,25 @@ _SINK_PATTERNS = [
     re.compile(r"""\bwget\b""", re.IGNORECASE),
     re.compile(r"""\bsocket\..*\.(?:send|connect)\b""", re.IGNORECASE),
     re.compile(r"""\bsmtplib\b""", re.IGNORECASE),
+    re.compile(r"""\banthropic\.\w*\.files\.create\b""", re.IGNORECASE),
+    re.compile(r"""(?:webhook\.site|requestbin|pipedream|hookbin|ngrok\.io)""", re.IGNORECASE),
+]
+
+# Reverse shell patterns (standalone detection, no source+sink needed)
+_REVERSE_SHELL_PATTERNS = [
+    re.compile(r"""bash\s+-i\s+>&\s*/dev/tcp/"""),
+    re.compile(r"""\bnc\s+.*-e\s+/bin/(?:sh|bash)\b"""),
+    re.compile(r"""\bmkfifo\b.*\bnc\b"""),
+    re.compile(r"""\bsocat\b.*\bexec\b""", re.IGNORECASE),
+    re.compile(r"""python.*socket.*\.connect.*(?:os\.dup2|subprocess)""", re.IGNORECASE),
+    re.compile(r"""\bncat\b.*(?:--exec|--sh-exec)"""),
+]
+
+# Shell command substitution exfiltration (DNS subdomain exfil)
+_SHELL_SUBST_EXFIL_PATTERNS = [
+    re.compile(r"""\$\(.*(?:cat|echo|base64|xxd).*\)\..*\.\w{2,}"""),
+    re.compile(r"""`.*(?:cat|echo|base64).*`\..*\.\w{2,}"""),
+    re.compile(r"""(?:ping|nslookup|dig|host)\s+.*\$\("""),
 ]
 
 # Bulk file enumeration patterns
@@ -72,7 +90,7 @@ class DataflowEngine(BaseEngine):
     name = "dataflow"
 
     def scan(self, file_path: Path, content: str, target: TargetType) -> list[Finding]:
-        if target not in (TargetType.SCRIPT, TargetType.ANY):
+        if target not in (TargetType.SCRIPT, TargetType.ANY, TargetType.MCP_CONFIG):
             return []
 
         findings: list[Finding] = []
@@ -110,6 +128,38 @@ class DataflowEngine(BaseEngine):
                 if p.search(line_text):
                     clipboard_ops.append((line_no, line_text.strip()))
                     break
+            # Reverse shell detection (standalone, only for targets not covered by regex engine)
+            if target not in (TargetType.SCRIPT,):
+                for p in _REVERSE_SHELL_PATTERNS:
+                    if p.search(line_text):
+                        findings.append(Finding(
+                            rule_id="SR-EXFIL-005",
+                            category=ThreatCategory.DATA_EXFILTRATION,
+                            severity=Severity.CRITICAL,
+                            title="Reverse shell pattern detected",
+                            file=str(file_path),
+                            line=line_no,
+                            evidence=line_text.strip()[:240],
+                            recommendation="Remove reverse shell code. This is a critical security threat.",
+                            engine=self.name,
+                        ))
+                        break
+            # Shell command substitution exfiltration (only for targets not covered by regex)
+            if target not in (TargetType.SCRIPT,):
+                for p in _SHELL_SUBST_EXFIL_PATTERNS:
+                    if p.search(line_text):
+                        findings.append(Finding(
+                            rule_id="SR-EXFIL-006",
+                            category=ThreatCategory.DATA_EXFILTRATION,
+                            severity=Severity.HIGH,
+                            title="DNS subdomain exfiltration pattern",
+                            file=str(file_path),
+                            line=line_no,
+                            evidence=line_text.strip()[:240],
+                            recommendation="Do not embed sensitive data in DNS queries or domain names.",
+                            engine=self.name,
+                        ))
+                        break
 
         # SR-EXFIL-002: Bulk enumeration + pack + upload
         if bulk_enum and pack_ops and sinks:

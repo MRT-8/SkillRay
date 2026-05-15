@@ -77,3 +77,54 @@ register(Rule(
     r"(?:\.replace\s*\([^)]+\)\s*){3,}.*(?:os\.system|subprocess|popen)",
     r"(?:os\.system|subprocess\..*|popen)\s*\(.*(?:\.replace\s*\([^)]+\)\s*){3,}",
 ])
+
+# SR-OBFUSC-006: ROT13 encoding in execution context
+register(Rule(
+    rule_id="SR-OBFUSC-006",
+    category=ThreatCategory.OBFUSCATION,
+    severity=Severity.MEDIUM,
+    title="ROT13 encoding in execution context",
+    description="ROT13 decoding combined with code execution or command building.",
+    recommendation="Use clear, readable code instead of ROT13-encoded payloads.",
+    targets=(TargetType.SCRIPT,),
+    engine="regex",
+), patterns=[
+    r"codecs\.decode\s*\(.*['\"]rot.13['\"]",
+    r"\.translate\s*\(.*maketrans.*13\)",
+    r"rot13.*(?:eval|exec|system|popen|subprocess)",
+    r"(?:eval|exec)\s*\(.*rot13",
+])
+
+# SR-OBFUSC-007: XOR-based payload obfuscation
+register(Rule(
+    rule_id="SR-OBFUSC-007",
+    category=ThreatCategory.OBFUSCATION,
+    severity=Severity.HIGH,
+    title="XOR-based payload obfuscation",
+    description="XOR-encoded payloads combined with code execution.",
+    recommendation="Do not use XOR encoding to hide executable payloads.",
+    targets=(TargetType.SCRIPT,),
+    engine="regex",
+), patterns=[
+    r"chr\s*\(\s*ord\s*\(.*\)\s*\^\s*",
+    r"bytes\s*\(\s*\[?\s*(?:b\s*\^\s*k|x\s*\^|c\s*\^).*for\b",
+    r"(?:eval|exec)\s*\(.*\bxor\b",
+    r"\bxor\b.*(?:eval|exec|system|subprocess)",
+])
+
+# SR-OBFUSC-008: Multi-layer encoding chain
+register(Rule(
+    rule_id="SR-OBFUSC-008",
+    category=ThreatCategory.OBFUSCATION,
+    severity=Severity.MEDIUM,
+    title="Multi-layer encoding chain",
+    description="Multiple encoding/decoding layers chained together to hide payloads.",
+    recommendation="Remove nested encoding layers used to obfuscate code.",
+    targets=(TargetType.SCRIPT,),
+    engine="regex",
+), patterns=[
+    r"(?:base64|b64decode|atob).*(?:base32|b32decode).*(?:decode|unhexlify|fromhex)",
+    r"(?:decode|unhexlify|fromhex).*(?:base64|b64decode).*(?:eval|exec)",
+    r"(?:b64decode|atob)\s*\(.*(?:b64decode|atob)\s*\(",
+    r"(?:codecs\.decode.*){2,}",
+])

@@ -59,3 +59,39 @@ register(Rule(
     targets=_TARGETS,
     engine="prompt",
 ))
+
+# SR-PROMPT-006: Unicode Tags block characters (invisible prompt injection)
+register(Rule(
+    rule_id="SR-PROMPT-006",
+    category=ThreatCategory.PROMPT_INJECTION,
+    severity=Severity.CRITICAL,
+    title="Unicode Tags block characters detected",
+    description="Characters from Unicode Tags block (U+E0001-E007F) used for invisible prompt injection.",
+    recommendation="Remove Unicode Tag characters. These are invisible and can hide instructions.",
+    targets=(TargetType.ANY,),
+    engine="prompt",
+))
+
+# SR-PROMPT-007: Emoji Variation Selector payload hiding
+register(Rule(
+    rule_id="SR-PROMPT-007",
+    category=ThreatCategory.PROMPT_INJECTION,
+    severity=Severity.HIGH,
+    title="Emoji Variation Selector payload hiding",
+    description="Variation Selectors (U+FE00-FE0F, U+E0100-E01EF) used to hide payloads in emoji sequences.",
+    recommendation="Remove Variation Selector characters used outside normal emoji rendering.",
+    targets=(TargetType.ANY,),
+    engine="prompt",
+))
+
+# SR-PROMPT-008: ANSI escape sequence injection
+register(Rule(
+    rule_id="SR-PROMPT-008",
+    category=ThreatCategory.PROMPT_INJECTION,
+    severity=Severity.HIGH,
+    title="ANSI escape sequence injection",
+    description="ANSI escape sequences that can manipulate terminal output to hide or fake content.",
+    recommendation="Remove ANSI escape sequences from skill definitions.",
+    targets=(TargetType.ANY,),
+    engine="prompt",
+))

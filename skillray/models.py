@@ -42,7 +42,7 @@ class Severity(IntEnum):
 
 
 class ThreatCategory(str, Enum):
-    """9 threat categories for AI skills."""
+    """12 threat categories for AI skills."""
     PROMPT_INJECTION = "SR-PROMPT"
     TOOL_POISONING = "SR-TOOL"
     CREDENTIAL_THEFT = "SR-CRED"
@@ -52,6 +52,9 @@ class ThreatCategory(str, Enum):
     OBFUSCATION = "SR-OBFUSC"
     DESTRUCTIVE_OPS = "SR-DESTRUCT"
     CODE_EXECUTION = "SR-EXEC"
+    PERSISTENCE = "SR-PERSIST"
+    STEALTH = "SR-STEALTH"
+    MCP_THREAT = "SR-MCP"
 
     @property
     def display_name(self) -> str:
@@ -65,6 +68,9 @@ class ThreatCategory(str, Enum):
             ThreatCategory.OBFUSCATION: "Obfuscation",
             ThreatCategory.DESTRUCTIVE_OPS: "Destructive Operations",
             ThreatCategory.CODE_EXECUTION: "Code Execution",
+            ThreatCategory.PERSISTENCE: "Persistence/Backdoor",
+            ThreatCategory.STEALTH: "Stealth/Coercion",
+            ThreatCategory.MCP_THREAT: "MCP Configuration Threat",
         }[self]
 
 
@@ -75,6 +81,8 @@ class TargetType(str, Enum):
     MARKDOWN = "markdown"
     CONFIG = "config"
     ANY = "any"
+    MCP_CONFIG = "mcp_config"
+    CI_CONFIG = "ci_config"
 
 
 @dataclass(frozen=True)

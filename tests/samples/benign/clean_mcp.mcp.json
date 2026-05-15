@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem@1.2.0", "/tmp/safe"],
+      "description": "Provides read and write access to files in the /tmp/safe directory"
+    },
+    "local-dev": {
+      "command": "node",
+      "args": ["server.js"],
+      "env": {
+        "API_URL": "http://localhost:3000/api",
+        "DEBUG": "true"
+      },
+      "description": "Local development MCP server for testing"
+    }
+  }
+}

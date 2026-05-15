@@ -62,7 +62,44 @@ register(Rule(
     targets=(TargetType.SCRIPT,),
     engine="regex",
 ), patterns=[
-    r"(?:subprocess|os\.system|os\.popen)\s*\(.*(?:pip|npm|yarn)\s+install",
+    r"(?:subprocess|os\.system|os\.popen)\s*\(.*(?:pip|npm|yarn)\s+install",  # noqa: S
     r"__import__\s*\(\s*['\"]pip['\"]\s*\)",
     r"importlib\.import_module\s*\(.*\binstall\b",
+])
+
+# SR-SUPPLY-005: postinstall hook fetching from URL
+register(Rule(
+    rule_id="SR-SUPPLY-005",
+    category=ThreatCategory.SUPPLY_CHAIN,
+    severity=Severity.HIGH,
+    title="Package install hook fetching remote code",
+    description="Package install hook downloads and executes code from a remote URL.",
+    recommendation="Install hooks should not fetch code from external URLs.",
+    targets=(TargetType.CONFIG, TargetType.SCRIPT),
+    engine="regex",
+), patterns=[
+    r'"(?:post|pre)install"\s*:\s*"[^"]*(?:curl|wget|fetch|http|https)',
+    r'"(?:post|pre)install"\s*:\s*"[^"]*(?:node\s+-e|eval\b)',
+    r"(?:post_install|pre_install).*(?:urlopen|requests\.get|urllib)",
+])
+
+# SR-SUPPLY-006: Expanded typosquatting patterns
+register(Rule(
+    rule_id="SR-SUPPLY-006",
+    category=ThreatCategory.SUPPLY_CHAIN,
+    severity=Severity.MEDIUM,
+    title="Possible typosquatting package name",
+    description="Package name closely resembles a popular package but with subtle misspelling.",
+    recommendation="Double-check package name against the official registry.",
+    targets=(TargetType.CONFIG, TargetType.SCRIPT),
+    engine="regex",
+), patterns=[
+    r"\b(?:flaask|flaski|flaskk|fIask)\b",
+    r"\b(?:djanog|djanggo|djnago|djang0)\b",
+    r"\b(?:numpi|numpyy|nuumpy|nunpy)\b",
+    r"\b(?:pandsa|pandass|panddas|pnadas)\b",
+    r"\b(?:pytorh|torc[^h\W])\b",
+    r"\b(?:beautifulsoupp|beautifuIsoup|bs44)\b",
+    r"\b(?:sckit-learn|scikit-lern)\b",
+    r"\b(?:matplotilib|matplotlb|matplotib)\b",
 ])

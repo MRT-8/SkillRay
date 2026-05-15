@@ -28,8 +28,24 @@ _ALL_ENGINES = [
 ]
 
 
+_MCP_CONFIG_NAMES = {".mcp.json", "mcp.json", "claude_desktop_config.json"}
+
+_CI_CONFIG_NAMES = {"dockerfile", "docker-compose.yml", "docker-compose.yaml"}
+
+
 def _classify_target(file_path: Path) -> TargetType | None:
     name_lower = file_path.name.lower()
+
+    # MCP configuration files
+    if name_lower in _MCP_CONFIG_NAMES:
+        return TargetType.MCP_CONFIG
+    if name_lower in ("settings.json", "settings.local.json") and ".claude" in file_path.parts:
+        return TargetType.MCP_CONFIG
+
+    # CI/CD configuration files
+    if name_lower in _CI_CONFIG_NAMES:
+        return TargetType.CI_CONFIG
+
     if name_lower == "skill.md":
         return TargetType.SKILL_MD
     if name_lower.endswith(".md"):
@@ -48,14 +64,19 @@ def _classify_target(file_path: Path) -> TargetType | None:
     return None
 
 
+_ALLOWED_HIDDEN_DIRS = {".github", ".claude"}
+_SKIP_DIRS = {"node_modules", "__pycache__", ".git", "venv", ".venv"}
+
+
 def discover_files(scan_root: Path) -> list[tuple[Path, TargetType, str]]:
     discovered: list[tuple[Path, TargetType, str]] = []
     for file_path in sorted(scan_root.rglob("*")):
         if not file_path.is_file():
             continue
-        # Skip hidden directories and common non-scan directories
         parts = file_path.relative_to(scan_root).parts
-        if any(p.startswith(".") or p in ("node_modules", "__pycache__", ".git", "venv", ".venv") for p in parts):
+        # Check directory parts (all except the filename)
+        dir_parts = parts[:-1]
+        if any(p in _SKIP_DIRS or (p.startswith(".") and p not in _ALLOWED_HIDDEN_DIRS) for p in dir_parts):
             continue
         target = _classify_target(file_path)
         if target is None:

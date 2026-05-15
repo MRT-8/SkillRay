@@ -6,7 +6,7 @@ from skillray.models import TargetType
 
 def test_rules_registered():
     rules = get_all_rules()
-    assert len(rules) >= 35  # ~37 rules registered
+    assert len(rules) >= 60  # ~69 rules registered
 
 
 def test_rule_ids_unique():
@@ -21,6 +21,7 @@ def test_all_categories_represented():
     expected = {
         "SR-PROMPT", "SR-TOOL", "SR-CRED", "SR-EXFIL",
         "SR-SUPPLY", "SR-PRIV", "SR-OBFUSC", "SR-DESTRUCT", "SR-EXEC",
+        "SR-PERSIST", "SR-STEALTH", "SR-MCP",
     }
     assert categories == expected
 

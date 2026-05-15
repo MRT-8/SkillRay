@@ -76,7 +76,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--version", "-V",
         action="version",
-        version="skillray 2.0.0",
+        version="skillray 3.0.0",
     )
     return parser
 

@@ -21,14 +21,17 @@
 
 ## Why SkillRay?
 
-**36.82% of AI skills contain security defects** (Snyk ToxicSkills, 2024). As AI agents gain tool-use capabilities, a single malicious skill can steal credentials, exfiltrate data, or compromise entire systems.
+**36.82% of AI skills contain security defects** (Snyk ToxicSkills). 30+ CVEs filed against MCP in 2025-2026. As AI agents gain tool-use capabilities, a single malicious skill can steal credentials, exfiltrate data, poison agent memory, or compromise entire systems.
 
-SkillRay is a **lightweight, offline, multi-engine static analyzer** purpose-built for AI skill security — no ML models, no API keys, no YARA C dependencies.
+SkillRay is a **lightweight, offline, multi-engine static analyzer** purpose-built for AI skill and MCP tool security — no ML models, no API keys, no YARA C dependencies.
 
 ## Features
 
 - **5 Detection Engines** — Regex, AST, Entropy, Dataflow, Prompt analysis
-- **37+ Security Rules** across 9 threat categories
+- **69 Security Rules** across 12 threat categories
+- **MCP Config Scanning** — Detects tool poisoning, command injection, and rug pull risks in `.mcp.json`
+- **Stealth Detection** — Catches "do not tell the user" coercion patterns (top malicious skill indicator)
+- **Persistence Detection** — CLAUDE.md poisoning, SSH key injection, cron backdoors
 - **5-Level Severity** — Critical / High / Medium / Low / Info
 - **Beautiful Terminal Output** — Rich tables, colors, progress indicators
 - **Multiple Output Formats** — Text, JSON, SARIF, Markdown
@@ -68,25 +71,28 @@ skillray . --lang zh
 
 | Category | Rules | Engine | Example Threats |
 |----------|-------|--------|----------------|
-| **SR-PROMPT** | 5 | Prompt | Hidden instructions, role override, invisible Unicode |
+| **SR-PROMPT** | 8 | Prompt | Hidden instructions, role override, invisible Unicode, Tags block, ANSI escape |
 | **SR-TOOL** | 3 | Prompt | Tool poisoning, MCP override, hidden behaviors |
-| **SR-CRED** | 5 | Entropy + Regex | Hardcoded keys (AWS/GitHub/OpenAI), env var theft |
-| **SR-EXFIL** | 4 | Dataflow + Regex | Sensitive read + network send, DNS tunneling |
-| **SR-SUPPLY** | 4 | Regex + AST | Typosquatting, runtime installs, unpinned deps |
+| **SR-CRED** | 9 | Entropy + Regex | Hardcoded keys, env var theft, crypto wallets, browser/cloud creds |
+| **SR-EXFIL** | 8 | Dataflow + Regex | Reverse shells, DNS subdomain exfil, webhook exfil, image URL exfil |
+| **SR-SUPPLY** | 6 | Regex + AST | Typosquatting, runtime installs, postinstall hooks |
 | **SR-PRIV** | 4 | Regex | sudo, container escape, security bypass |
-| **SR-OBFUSC** | 5 | Regex + Prompt | Base64/hex payloads, homoglyphs, string concat |
+| **SR-OBFUSC** | 8 | Regex + Prompt | Base64/hex/ROT13/XOR payloads, homoglyphs, multi-layer encoding |
 | **SR-DESTRUCT** | 3 | Regex | rm -rf, disk format, git history destruction |
 | **SR-EXEC** | 4 | AST + Regex | eval/exec, shell=True, download-and-execute |
+| **SR-PERSIST** | 6 | Regex | CLAUDE.md poisoning, SSH key injection, cron jobs, shell profile mods |
+| **SR-STEALTH** | 5 | Prompt + Regex | "Do not tell user", output suppression, log clearing, anti-detection |
+| **SR-MCP** | 5 | Prompt + Regex | Cross-tool shadowing, dangerous flags, command injection, rug pull |
 
 ## Detection Engines
 
 | Engine | Target Files | Dependencies | Purpose |
 |--------|-------------|-------------|---------|
-| **RegexEngine** | All | stdlib `re` | Pattern matching (~60 patterns) |
+| **RegexEngine** | All | stdlib `re` | Pattern matching (~100 patterns) |
 | **ASTEngine** | `.py` | stdlib `ast` | Python AST analysis, eliminates comment/string FPs |
 | **EntropyEngine** | All | stdlib `math` | Shannon entropy + ~15 known key formats |
-| **DataflowEngine** | `.py` / shell | stdlib `ast` | Lightweight taint tracking: source → sink |
-| **PromptEngine** | `.md` / SKILL.md | stdlib | Prompt injection heuristics |
+| **DataflowEngine** | `.py` / shell / MCP config | stdlib | Taint tracking + reverse shell + DNS exfil |
+| **PromptEngine** | `.md` / SKILL.md / MCP config | stdlib | Prompt injection, stealth, tool shadowing |
 
 ## CLI Reference
 

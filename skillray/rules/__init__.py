@@ -14,6 +14,9 @@ from . import (
     obfuscation,
     destructive_ops,
     code_execution,
+    persistence,
+    stealth,
+    mcp_threat,
 )
 
 __all__ = ["registry", "get_all_rules"]

@@ -54,7 +54,7 @@ def test_cli_version(capsys):
     except SystemExit:
         pass
     output = capsys.readouterr().out
-    assert "2.0.0" in output
+    assert "3.0.0" in output
 
 
 def test_cli_md_output(malicious_dir: Path, capsys):

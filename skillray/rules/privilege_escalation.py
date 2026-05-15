@@ -49,7 +49,7 @@ register(Rule(
     title="Container escape pattern detected",
     description="Commands or configurations that could enable container escape.",
     recommendation="Ensure container isolation boundaries are maintained.",
-    targets=(TargetType.SCRIPT, TargetType.CONFIG),
+    targets=(TargetType.SCRIPT, TargetType.CONFIG, TargetType.CI_CONFIG),
     engine="regex",
 ), patterns=[
     r"\b--privileged\b",
