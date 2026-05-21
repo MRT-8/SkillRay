@@ -28,7 +28,10 @@ SkillRay 是一个**轻量级、离线、多引擎静态分析器**，专为 AI 
 ## 核心特性
 
 - **5 大检测引擎** — 正则、AST、熵分析、数据流、Prompt 分析
-- **37+ 安全规则**，覆盖 9 大威胁类别
+- **69 条安全规则**，覆盖 12 大威胁类别
+- **MCP 配置扫描** — 检测 `.mcp.json` 中的工具投毒、命令注入和 Rug Pull 风险
+- **隐身行为检测** — 捕获“不要告诉用户”等胁迫模式（恶意技能高频指标）
+- **持久化检测** — CLAUDE.md 投毒、SSH 密钥注入、cron 后门
 - **5 级严重性** — 严重 / 高 / 中 / 低 / 信息
 - **美观终端输出** — Rich 表格、颜色、进度指示
 - **多种输出格式** — 文本、JSON、SARIF、Markdown
@@ -68,25 +71,28 @@ skillray . --lang zh
 
 | 类别 | 规则数 | 引擎 | 示例威胁 |
 |------|--------|------|---------|
-| **SR-PROMPT** | 5 | Prompt | 隐藏指令、角色覆盖、不可见 Unicode |
+| **SR-PROMPT** | 8 | Prompt | 隐藏指令、角色覆盖、不可见 Unicode、Tags 块、ANSI 转义 |
 | **SR-TOOL** | 3 | Prompt | 工具投毒、MCP 覆盖、隐藏行为 |
-| **SR-CRED** | 5 | 熵分析 + 正则 | 硬编码密钥（AWS/GitHub/OpenAI）、环境变量窃取 |
-| **SR-EXFIL** | 4 | 数据流 + 正则 | 敏感文件读取 + 网络发送、DNS 隧道 |
-| **SR-SUPPLY** | 4 | 正则 + AST | 拼写欺骗、运行时安装、未固定依赖 |
+| **SR-CRED** | 9 | 熵分析 + 正则 | 硬编码密钥、环境变量窃取、钱包、浏览器/云凭证 |
+| **SR-EXFIL** | 8 | 数据流 + 正则 | 反连 Shell、DNS 子域外传、Webhook 外传、图片 URL 外传 |
+| **SR-SUPPLY** | 6 | 正则 + AST | 拼写欺骗、运行时安装、postinstall 钩子 |
 | **SR-PRIV** | 4 | 正则 | sudo、容器逃逸、安全绕过 |
-| **SR-OBFUSC** | 5 | 正则 + Prompt | Base64/十六进制载荷、同形字、字符串拼接 |
+| **SR-OBFUSC** | 8 | 正则 + Prompt | Base64/十六进制/ROT13/XOR 载荷、同形字、多层编码 |
 | **SR-DESTRUCT** | 3 | 正则 | rm -rf、磁盘格式化、git 历史破坏 |
 | **SR-EXEC** | 4 | AST + 正则 | eval/exec、shell=True、下载并执行 |
+| **SR-PERSIST** | 6 | 正则 | CLAUDE.md 投毒、SSH 密钥注入、cron 任务、shell profile 修改 |
+| **SR-STEALTH** | 5 | Prompt + 正则 | “不要告诉用户”、输出抑制、日志清理、反检测 |
+| **SR-MCP** | 5 | Prompt + 正则 | 跨工具影子规则、危险参数、命令注入、Rug Pull |
 
 ## 检测引擎
 
 | 引擎 | 目标文件 | 依赖 | 作用 |
 |------|---------|------|------|
-| **RegexEngine** | 所有 | stdlib `re` | 模式匹配（约 60 个模式） |
+| **RegexEngine** | 所有 | stdlib `re` | 模式匹配（约 100 个模式） |
 | **ASTEngine** | `.py` | stdlib `ast` | Python AST 分析，消除注释/字符串误报 |
 | **EntropyEngine** | 所有 | stdlib `math` | Shannon 熵检测 + 约 15 种已知密钥格式 |
-| **DataflowEngine** | `.py` / shell | stdlib `ast` | 轻量污点追踪：源（敏感读取）→ 汇（网络发送） |
-| **PromptEngine** | `.md` / SKILL.md | stdlib | Prompt 注入启发式检测 |
+| **DataflowEngine** | `.py` / shell / MCP 配置 | stdlib | 轻量污点追踪：源（敏感读取）→ 汇（网络发送） |
+| **PromptEngine** | `.md` / SKILL.md / MCP 配置 | stdlib | Prompt 注入、隐身行为、工具影子规则 |
 
 ## 与竞品对比
 
